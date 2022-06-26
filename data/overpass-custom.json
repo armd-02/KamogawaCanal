@@ -1,0 +1,27 @@
+{
+    "osm": {
+        "KamogawaCanal": {
+            "overpass": [
+                "way[\"waterway\"=\"canal\"]",
+                "way[\"natural\"=\"water\"]",
+                "way[\"man_made\"=\"bridge\"]",
+                "way[\"bridge\"][\"name\"][\"highway\"=\"path\"]",
+                "way[\"bridge\"][\"name\"][\"highway\"=\"footway\"]"
+            ],
+            "tags": [
+                "waterway",
+                "matural",
+                "bridge",
+                "man_made"
+            ],
+            "expression": {
+                "stroke": "#404090",
+                "stroke-width": 2
+            },
+            "titles": [
+                "name",
+                "operator"
+            ]
+        }
+    }
+}

@@ -1,0 +1,42 @@
+{
+    "list": {
+        "columns": {
+            "common": [
+                {
+                    "id": "osmid",
+                    "hidden": true
+                },
+                {
+                    "id": "updatetime",
+                    "name": "日付",
+                    "hidden": true
+                },
+                {
+                    "id": "category",
+                    "name": "種類"
+                },
+                {
+                    "id": "name",
+                    "name": "題名"
+                },
+                {
+                    "id": "artist_name",
+                    "name": "作者名"
+                }                
+            ],
+            "poi_fields": [
+                "id",
+                "timestamp",
+                "#category",
+                "name",
+                "artist_name"
+            ],
+            "act_fields": [
+                "id",
+                "updatetime",
+                "category",
+                "title"
+            ]
+        }
+    }
+}
