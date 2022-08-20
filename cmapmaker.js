@@ -155,7 +155,6 @@ class CMapMaker {
 	url_share(actid) {			// URL共有機能
 		function execCopy(string) {
 			let pre = document.createElement('pre');			// ClipBord Copy
-			pre.style.webkitUserSelect = 'auto';
 			pre.style.userSelect = 'auto';
 			let text = document.createElement("div");
 			text.appendChild(pre).textContent = string;
@@ -167,7 +166,8 @@ class CMapMaker {
 			document.body.removeChild(text);
 			return copy;
 		};
-		let url = location.origin + location.pathname + location.search + "." + actid;
+		actid = actid == undefined ? "" : "." + actid;
+		let url = location.origin + location.pathname + location.search + actid + location.hash;
 		execCopy(url);
 	}
 

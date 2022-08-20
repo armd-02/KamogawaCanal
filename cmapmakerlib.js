@@ -179,6 +179,7 @@ class poiCont {
 class poiMarker {
 
 	static markers = {};
+	static osmpois = [];		// アイコン表示させたOSMIDリスト
 
 	static get_icon(tags) {		// get icon filename
 		let mainico = "", subicon = "", mainkey = "", mainval = "";
@@ -216,10 +217,10 @@ class poiMarker {
 				size = parseInt(basic.getStyleSheetValue(css_name, "height"));
 				// if (actlists.length > 0) html += `<img class="attention" src="./image/attention_noframe.svg">`;
 				html += `<img class="${css_name}" src="./${Conf.icon.path}/${poiMarker.get_icon(tags)}" icon-name="${name}">`;
-				let span = `<span class="icon" style="font-size: ${Conf.effect.text.size}px">${name}</span>`;
+				let span = `<span class="icon ${css_name} fs-${Conf.effect.text.size}">${name}</span>`;
 				if (name !== "" && Conf.effect.text.view) html += span;
 				let icon = L.divIcon({ "className": "", "iconSize": [size + span_width, size], "iconAnchor": [size / 2, size / 2], "html": html + "</div>" });
-				let marker = L.marker(new L.LatLng(params.poi.latlng[0], params.poi.latlng[1]), { icon: icon, draggable: false });
+				let marker = L.marker(new L.LatLng(params.poi.latlng[0], params.poi.latlng[1]), { icon: icon, draggable: false, zIndexOffset: params.zIndexOffset });
 				marker.addTo(map).on('click', e => { cMapmaker.detail_view(e.target.mapmaker_id) });
 				marker.mapmaker_id = params.poi.geojson.id;
 				marker.mapmaker_key = params.target;
@@ -244,27 +245,33 @@ class poiMarker {
 				if (poi.enable && GeoCont.check_inner(poi.latlng, LL)) {
 					let actlists = poiCont.get_actlist(poi.geojson.id);
 					let viewflag = (actonly && actlists.length > 0) ? true : !actonly;
-					if (viewflag) {		// act ok
-						make_marker({ target: target, poi: poi, langname: 'name' }).then(marker => {
+					if (viewflag && !poiMarker.osmpois.includes(geojson.id)) {		// act ok and 未表示の場合
+						let zIdx = actlists.length > 0 ? 1000 : 0;
+						poiMarker.osmpois.push(geojson.id);
+						make_marker({ target: target, poi: poi, langname: 'name', zIndexOffset: zIdx }).then(marker => {
 							if (marker !== undefined) marker.forEach(val => poiMarker.markers[target].push(val));	// 複数Marker対応(Wikipediaの解説など)
 						});
 					};
 				};
 			});
 		};
+
 		if (all.acts.length > 0) {				// acts表示
 			all.acts.forEach((act) => {
-				let osm = poiCont.get_osmid(act.osmid);
-				if (osm !== undefined && (act.category == org_target || org_target == "activity")) {
-					let poi = { "geojson": osm.geojson, "targets": osm.targets, "latlng": osm.latlng, "enable": osm.enable };
-					if (poi.enable && GeoCont.check_inner(poi.latlng, LL)) {
-						make_marker({ target: target, poi: poi, langname: 'name' }).then(marker => {
-							if (marker !== undefined) marker.forEach(val => poiMarker.markers[target].push(val));	// 複数Marker対応(Wikipediaの解説など)
-						});
+				if (!poiMarker.osmpois.includes(act.osmid)) {
+					let osm = poiCont.get_osmid(act.osmid);
+					if (osm !== undefined && (act.category == org_target || org_target == "activity")) {
+						let poi = { "geojson": osm.geojson, "targets": osm.targets, "latlng": osm.latlng, "enable": osm.enable };
+						if (poi.enable && GeoCont.check_inner(poi.latlng, LL)) {
+							poiMarker.osmpois.push(poi.geojson.id);
+							make_marker({ target: target, poi: poi, langname: 'name' }).then(marker => {
+								if (marker !== undefined) marker.forEach(val => poiMarker.markers[target].push(val));	// 複数Marker対応(Wikipediaの解説など)
+							});
+						};
+					} else {
+						console.log("poiMarker: no load osm data: " + act.osmid);
 					};
-				} else {
-					console.log("poiMarker: no osm data: " + act.osmid);
-				};
+				}
 			});
 		};
 	}
@@ -324,12 +331,18 @@ class poiMarker {
 		});
 	}
 
-	static all_clear() { Object.keys(poiMarker.markers).forEach((target) => this.delete(target)) }	// all delete
+	static all_clear() {
+		Object.keys(poiMarker.markers).forEach((target) => this.delete(target));
+		poiMarker.osmpois = [];
+	}	// all delete
 
 	static delete(target, osmid) {					// Marker delete * don't set pdata
 		if (osmid == undefined || osmid == "") {	// all osmid
 			if (poiMarker.markers[target] !== undefined) {
-				poiMarker.markers[target].forEach(marker => delmaker(marker));
+				poiMarker.markers[target].forEach(marker => {
+					poiMarker.osmpois = poiMarker.osmpois.filter(n => n !== marker.mapmaker_id);
+					delmaker(marker);
+				});
 				poiMarker.markers[target] = [];
 			};
 		} else {									// delete osmid
@@ -337,6 +350,7 @@ class poiMarker {
 				let val = vals.length == undefined ? vals : vals[0];
 				return val.mapmaker_id == osmid;
 			});
+			poiMarker.osmpois = poiMarker.osmpois.filter(n => n !== poiMarker.markers[target][idx].mapmaker_id);
 			delmaker(poiMarker.markers[target][idx]);
 		};
 		map.closePopup();

@@ -4,9 +4,9 @@
             "overpass": [
                 "way[\"waterway\"=\"canal\"]",
                 "way[\"natural\"=\"water\"]",
-                "way[\"man_made\"=\"bridge\"]",
-                "way[\"bridge\"][\"name\"][\"highway\"=\"path\"]",
-                "way[\"bridge\"][\"name\"][\"highway\"=\"footway\"]"
+                "way[\"man_made\"=\"bridge\"][\"name\"~\"橋$\"]",
+                "way[\"bridge\"][\"name\"~\"橋$\"][\"highway\"=\"path\"]",
+                "way[\"bridge\"][\"name\"~\"橋$\"][\"highway\"=\"footway\"]"
             ],
             "tags": [
                 "waterway",
